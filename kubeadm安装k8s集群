@@ -1,0 +1,130 @@
+
+
+```
+[root@vms13 ~]# cat kubeadm-ha.yaml 
+apiVersion: kubeadm.k8s.io/v1beta2
+bootstrapTokens:
+- groups:
+  - system:bootstrappers:kubeadm:default-node-token
+  token: abcdef.0123456789abcdef
+  ttl: 24h0m0s
+  usages:
+  - signing
+  - authentication
+kind: InitConfiguration
+localAPIEndpoint:
+  advertiseAddress: 192.168.26.13
+  bindPort: 6443
+nodeRegistration:
+  criSocket: /var/run/dockershim.sock
+  name: vms13
+  taints:
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/master
+---
+apiServer:
+  timeoutForControlPlane: 4m0s
+apiVersion: kubeadm.k8s.io/v1beta2
+certificatesDir: /etc/kubernetes/pki
+clusterName: kubernetes
+controlPlaneEndpoint: "192.168.26.15:7443"     
+controllerManager: {}
+dns:
+  type: CoreDNS
+etcd:
+  external:
+    endpoints:
+    - https://192.168.26.10:2379
+    - https://192.168.26.11:2379
+    - https://192.168.26.12:2379
+    caFile: /usr/local/etcd/ssl/ca.pem
+    certFile: /usr/local/etcd/ssl/apiserver-etcd-client.pem
+    keyFile: /usr/local/etcd/ssl/apiserver-etcd-client-key.pem 
+imageRepository: registry.aliyuncs.com/google_containers
+kind: ClusterConfiguration
+kubernetesVersion: v1.20.1
+networking:
+  dnsDomain: cluster.local
+  serviceSubnet: 10.1.0.0/16
+  podSubnet: 10.2.0.0/16
+scheduler: {}
+---
+apiVersion: kubeproxy.config.k8s.io/v1alpha1
+kind: KubeProxyConfiguration
+mode: ipvs
+```
+
+```
+kubeadm init --config kubeadm-ha.yaml --upload-certs
+```
+
+```
+
+Your Kubernetes control-plane has initialized successfully!
+
+To start using your cluster, you need to run the following as a regular user:
+
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+Alternatively, if you are the root user, you can run:
+
+  export KUBECONFIG=/etc/kubernetes/admin.conf
+
+You should now deploy a pod network to the cluster.
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
+You can now join any number of the control-plane node running the following command on each as root:
+
+  kubeadm join 192.168.26.15:7443 --token abcdef.0123456789abcdef \
+    --discovery-token-ca-cert-hash sha256:74e32d540acbe04ee30701071fb60f93006b832d435131e5528393aa5853bee2 \
+    --control-plane --certificate-key 24c3bc83c1e4c1ea7fb6af0dd2dcbcc056ebb22ea13899f4f70df81b367062b6
+
+Please note that the certificate-key gives access to cluster sensitive data, keep it secret!
+As a safeguard, uploaded-certs will be deleted in two hours; If necessary, you can use
+"kubeadm init phase upload-certs --upload-certs" to reload certs afterward.
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join 192.168.26.15:7443 --token abcdef.0123456789abcdef \
+    --discovery-token-ca-cert-hash sha256:74e32d540acbe04ee30701071fb60f93006b832d435131e5528393aa5853bee2 
+```
+
+
+```
+[root@vms13 ~]# kubectl apply -f calico.yaml 
+```
+
+```
+[root@vms14 ~]# kubectl get nodes
+NAME    STATUS   ROLES                  AGE     VERSION
+vms13   Ready    control-plane,master   2m23s   v1.20.1
+vms14   Ready    control-plane,master   68s     v1.20.1
+```
+
+```
+[root@vms14 ~]# kubectl get node,pod -A
+NAME         STATUS   ROLES                  AGE     VERSION
+node/vms13   Ready    control-plane,master   4m21s   v1.20.1
+node/vms14   Ready    control-plane,master   3m6s    v1.20.1
+node/vms16   Ready    <none>                 20s     v1.20.1
+
+NAMESPACE     NAME                                           READY   STATUS    RESTARTS   AGE
+kube-system   pod/calico-kube-controllers-6dfcd885bf-8lgzd   1/1     Running   0          2m27s
+kube-system   pod/calico-node-95mg4                          0/1     Running   0          20s
+kube-system   pod/calico-node-9r26f                          1/1     Running   0          2m27s
+kube-system   pod/calico-node-kgxbc                          1/1     Running   0          2m27s
+kube-system   pod/coredns-7f89b7bc75-f4b7d                   1/1     Running   0          4m7s
+kube-system   pod/coredns-7f89b7bc75-sd56v                   1/1     Running   0          4m7s
+kube-system   pod/kube-apiserver-vms13                       1/1     Running   0          4m11s
+kube-system   pod/kube-apiserver-vms14                       1/1     Running   0          117s
+kube-system   pod/kube-controller-manager-vms13              1/1     Running   0          4m11s
+kube-system   pod/kube-controller-manager-vms14              1/1     Running   0          2m5s
+kube-system   pod/kube-proxy-8h7tz                           1/1     Running   0          20s
+kube-system   pod/kube-proxy-dggm7                           1/1     Running   0          3m6s
+kube-system   pod/kube-proxy-qjzf4                           1/1     Running   0          4m7s
+kube-system   pod/kube-scheduler-vms13                       1/1     Running   0          4m11s
+kube-system   pod/kube-scheduler-vms14                       1/1     Running   0          111s
+```

@@ -1,0 +1,23 @@
+
+
+CoreDNS 安装:
+CoreDNS version in Kubernetes：
+https://github.com/coredns/deployment/blob/master/kubernetes/CoreDNS-k8s_version.md
+
+
+网络插件安装(2选择1):
+flannel插件：
+kubectl apply -f https://raw.githubusercontent.com/lspjx/kubernetes-note/master/examples/network/kube-flannel.yml
+
+calico插件：
+kubectl apply -f https://github.com/lspjx/kubernetes-note/blob/master/examples/network/calico.yaml
+
+traefik-ingress 安装：
+kubectl apply -f https://raw.githubusercontent.com/lspjx/kubernetes-note/master/examples/traefik-ingress-lb/traefik-ingress.yaml
+
+dashboard 安装：
+kubectl apply -f https://raw.githubusercontent.com/lspjx/kubernetes-note/master/dashboard/v2.0/dashboard-recommended.yaml
+kubectl apply -f https://raw.githubusercontent.com/lspjx/kubernetes-note/master/dashboard/v2.0/dashboard-admin.yaml
+
+
+
