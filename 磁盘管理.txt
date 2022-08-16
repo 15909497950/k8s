@@ -1,0 +1,7 @@
+磁盘管理
+# 显示当前设备的状态
+# dmsetup status
+# 删除所有映射关系
+# dmsetup remove_all
+# 格式化刚才删除的osd所在磁盘
+mkfs -t ext4 /dev/vdb
