@@ -1,0 +1,47 @@
+####k8s笔记####
+[uatk8s@ansible ~]$ kubectl create secret generic huqingsen --from-literal=username=huqingsen --from-literal=password=hqs@123
+secret/huqingsen created
+[uatk8s@ansible ~]$ kubectl get secrets huqingsen -o jsonpath={.data.username}|base64 -d
+huqingsen[uatk8s@ansible ~]$ 
+[uatk8s@ansible ~]$ 
+[uatk8s@ansible ~]$ kubectl get secrets huqingsen -o jsonpath={.data.password}|base64 -d
+hqs@123[uatk8s@ansible ~]$ 
+
+[uatk8s@ansible ~]$ kubectl get secrets 
+NAME                  TYPE                                  DATA   AGE
+default-token-zzvnh   kubernetes.io/service-account-token   3      39d
+huqingsen             Opaque                                2      10s
+[uatk8s@ansible ~]$ kubectl get secrets huqingsen -o yaml
+[root@node-0 test]# cat pod2.yaml 
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: pod2
+  name: pod2
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - image: hub.c.163.com/library/mysql
+    imagePullPolicy: IfNotPresent
+    name: pod2
+    resources: {}
+    env:
+    - name: MYSQL_ROOT_PASSWORD
+      valueFrom:  #表示引用
+        secretKeyRef: # 固定格式
+          name: huqingsen #选择secret名称
+          key: password #参数名称
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+
+
+ 1051  kubectl run pod1 --image=docker.addpchina.com/nginx:1.19 
+
+ 1055  kubectl get po -o wide
+
+ 1057  kubectl expose pod   pod1 --port=80 --name=svc1 
+ 1061  kubectl get po,ep,svc -o wide
+ 1063  kubectl expose pod   pod1 --port=80 --name=svc2 --type=NodePort
