@@ -1,0 +1,32 @@
+
+K8S集群管理之集群环境切换
+
+1) kubectx工具切换
+[root@ansible ~]# kubectx
+k8s-uat
+prod-monitoring-admin
+stage-monitoring-admin
+[root@ansible ~]# kubectx prod-monitoring-admin
+Switched to context "prod-monitoring-admin".
+[root@ansible ~]# kubectx
+k8s-uat
+prod-monitoring-admin
+stage-monitoring-admin
+ 
+2) kubectl命令切换：
+[root@ansible ~]# k config get-contexts 
+CURRENT   NAME                     CLUSTER     AUTHINFO                 NAMESPACE
+          k8s-uat                  k8s-uat     k8s-uat-admin            monitoring
+*         prod-monitoring-admin    k8s-prod    prod-monitoring-admin    monitoring
+          stage-monitoring-admin   k8s-stage   stage-monitoring-admin   monitoring
+[root@ansible ~]# k config use-context k8s-uat
+Switched to context "k8s-uat".
+[root@ansible ~]# k config get-contexts 
+CURRENT   NAME                     CLUSTER     AUTHINFO                 NAMESPACE
+*         k8s-uat                  k8s-uat     k8s-uat-admin            monitoring
+          prod-monitoring-admin    k8s-prod    prod-monitoring-admin    monitoring
+          stage-monitoring-admin   k8s-stage   stage-monitoring-admin   monitoring
+
+
+
+
