@@ -1,0 +1,5 @@
+yum -y install bash-completion
+source /etc/profile.d/bash_completion.sh
+echo "export KUBECONFIG=/etc/kubernetes/admin.conf" >> ~/.bash_profile
+echo "source <(kubectl completion bash)" >> ~/.bash_profile
+source ~/.bash_profile 
