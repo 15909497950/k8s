@@ -1,0 +1,7 @@
+# 定义变量
+NAMESPACE=test
+# proxy后台监听8001
+kubectl proxy &
+# jq将spec字段内改为空，主要是删除finalizers字段
+kubectl get namespace $NAMESPACE -o json |jq '.spec = {}' >temp.json
+curl -k -H "Content-Type: application/json" -X PUT --data-binary @temp.json 127.0.0.1:8001/api/v1/namespaces/$NAMESPACE/finalize
