@@ -1,0 +1,101 @@
+docker部署sentry
+1.sentry 是什么？
+Sentry是一个实时事件的日志聚合平台。它专门监测错误并提取所有有用信息用于分析，不再麻烦地依赖用户反馈来定位问题。
+下载镜像
+docker pull redis:6.0.9
+docker pull postgres:13.3
+docker pull sentry:9.1.2
+创建目录
+mkdir -p /data/sentry/redis/
+mkdir -p /data/sentry/redis/data
+mkdir -p /data/sentry/postgres/
+mkdir -p /data/sentry/postgres/data
+docker run -d --privileged=true --restart=always -v /data/sentry/redis/data:/data --name sentry-redis redis:6.0.9
+docker run -d --privileged=true --restart=always  -e POSTGRES_PASSWORD=secret -e POSTGRES_USER=sentry -v /data/sentry/postgres/data:/var/lib/postgresql/data --name sentry-postgres postgres:13.3
+ 生成秘钥（注意保存后面会使用）
+ docker run --rm sentry:9.1.2 config generate-secret-key
+[root@node-0 ~]# docker run --rm sentry:9.1.2 config generate-secret-key
+k0jxc4n_-e!@gofv@p+6x2b0u-8cpipbrti4qb*&k-&%r5ct_m
+# 初始化数据结构,在升级过程中，系统将提示您创建将充当超级用户的初始用户
+docker run -it --rm -e SENTRY_SECRET_KEY='k0jxc4n_-e!@gofv@p+6x2b0u-8cpipbrti4qb*&k-&%r5ct_m' --link sentry-postgres:postgres --link sentry-redis:redis sentry:9.1.2 upgrade
+
+sentry相关操作
+sentry：sentry的web服务
+sentry-celery：sentry的定时任务，活性检测等
+sentry-worker：业务处理，数据持久化，报警等
+启动sentry
+docker run -d --privileged=true --restart=always -p 9000:9000 --name sentry -e SENTRY_SECRET_KEY='k0jxc4n_-e!@gofv@p+6x2b0u-8cpipbrti4qb*&k-&%r5ct_m' --link sentry-redis:redis --link sentry-postgres:postgres sentry:9.1.2
+启动sentry-celery
+docker run -d --privileged=true --restart=always --name sentry-celery -e SENTRY_SECRET_KEY='k0jxc4n_-e!@gofv@p+6x2b0u-8cpipbrti4qb*&k-&%r5ct_m' --link sentry-postgres:postgres --link sentry-redis:redis sentry:9.1.2 run cron
+启动sentry-worker
+docker run -d --privileged=true --restart=always --name sentry-worker -e SENTRY_SECRET_KEY='k0jxc4n_-e!@gofv@p+6x2b0u-8cpipbrti4qb*&k-&%r5ct_m' --link sentry-postgres:postgres --link sentry-redis:redis sentry:9.1.2 run worker
+以上是使用docker部署，下面给出docker-compose文件，需要本地装有docker-compose：
+
+version: '3'
+services:
+    redis:
+        image: redis:6.0.9
+        container_name: sentry-redis
+        restart: always
+        volumes:
+         - /data/sentry/redis/data:/data
+ 
+    postgres:
+        image: postgres:13.3
+        container_name: sentry-postgres
+        restart: always
+        environment:
+         - POSTGRES_USER=sentry
+         - POSTGRES_PASSWORD=sentry
+         - POSTGRES_DBNAME=sentry
+         - POSTGRES_DBUSER=sentry
+         - POSTGRES_DBPASS=sentry
+        volumes:
+         - /data/sentry/postgres/data:/var/lib/postgresql/data
+ 
+    sentry:
+        image: sentry:9.1.2
+        links:
+         - redis
+         - postgres
+        ports:
+         - 9000:9000
+        environment:
+         SENTRY_SECRET_KEY: 'xp0)!qhim76(q2k#_jd-e4wn06z7tvdd-vr5y#_+wi(d@#vf4f'
+         SENTRY_POSTGRES_HOST: postgres
+         SENTRY_DB_USER: sentry
+         SENTRY_DB_PASSWORD: sentry
+         SENTRY_REDIS_HOST: redis
+ 
+    cron:
+        image: sentry:9.1.2
+        links:
+         - redis
+         - postgres
+        command: "sentry run cron"
+        environment:
+         SENTRY_SECRET_KEY: 'xp0)!qhim76(q2k#_jd-e4wn06z7tvdd-vr5y#_+wi(d@#vf4f'
+         SENTRY_POSTGRES_HOST: postgres
+         SENTRY_DB_USER: sentry
+         SENTRY_DB_PASSWORD: sentry
+         SENTRY_REDIS_HOST: redis
+ 
+    worker:
+        image: sentry:9.1.2
+        links:
+         - redis
+         - postgres
+        command: "sentry run worker"
+        environment:
+         SENTRY_SECRET_KEY: 'xp0)!qhim76(q2k#_jd-e4wn06z7tvdd-vr5y#_+wi(d@#vf4f'
+         SENTRY_POSTGRES_HOST: postgres
+         SENTRY_DB_USER: sentry
+         SENTRY_DB_PASSWORD: sentry
+         SENTRY_REDIS_HOST: redis
+
+ 
+启动docker-compose up -d 之后看下sentry的id，并且执行下面语句：
+
+sudo docker exec -it 4ca743bc3243 sentry upgrade   // 过程中需要输入邮箱和密码
+
+ 此时sentry就可以正常的启动了。。
