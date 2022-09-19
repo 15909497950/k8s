@@ -1,0 +1,5 @@
+kubectl api-resources   #查看api资源信息
+kubectl describe pv local-pv-3d49d1d1 -n monitoring  #查看pv详细信息
+kubectl get nodes -o wide
+kubectl exec -it prometheus-k8s-0 -- ls -n monitoring
+
