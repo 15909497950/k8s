@@ -211,7 +211,7 @@ drwxr-xr-x   - root supergroup          0 2020-06-02 09:14 /mytest
 生成配置文件
 
 ```shell
- kubectl config set-cluster kubernetes   --certificate-authority=/etc/kubernetes/pki/ca.crt   --embed-certs=true   --server=https://100.65.34.67:6443 --kubeconfig=./config
+ kubectl config set-cluster kubernetes   --certificate-authority=/etc/kubernetes/pki/ca.crt  --embed-certs=true --server=https://100.65.34.67:6443 --kubeconfig=./config
 
 
  kubectl config set-credentials myuser1 --client-certificate=myuser1.crt --client-key=myuser1.key --embed-certs=true --kubeconfig=./config
@@ -244,5 +244,20 @@ kubectl config set-context default \
 # 设置默认上下文
 kubectl config use-context default \
   --kubeconfig=./config
+```
+
+k8s中有角色和角色绑定，因为K8S有两种资源，一种是集群资源，也就是cluster；一种是namespace资源；所以分别有role,rolebinding,clusterrole,clusterrolebinding.他们的区别在于作用域不同，cluster是针对整个集群资源的，而role则是限制在namespace中的。
+
+这里有个特例就是role可以绑定clusterrole，这是很便捷的一个操作，假设你有十个namespace，每个namespace要建立一个只读权限的角色，那么你需要在10个namespace中分别建立rolebinding为get；但是如果role可以绑定clusterrolebinding，那么只需要建立一个clusterrolebinding为get，然后使用role去绑定这个clusterrolebinding即可，而不需要去建10次。
+
+# 集群角色创建和绑定
+
+```shell
+kubectl create clusterrole clusterrole-reader-pods --verb=get,list,watch --resource=pods --dry-run -o yaml > clusterrole-demo.yaml
+
+kubectl create clusterrolebinding cluster-reader --clusterrole=clusterrole-reader-pods --user=myuser1 --dry-run -o yaml > clusterrolebinding-demo.yaml
+
+kubectl apply -f clusterrole-demo.yaml
+kubectl apply -f clusterrolebinding-demo.yaml
 ```
 
