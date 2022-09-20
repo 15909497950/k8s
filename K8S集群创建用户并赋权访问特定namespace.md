@@ -208,3 +208,41 @@ drwxr-xr-x   - root supergroup          0 2020-06-02 09:14 /mytest
 
 ```
 
+生成配置文件
+
+```shell
+ kubectl config set-cluster kubernetes   --certificate-authority=/etc/kubernetes/pki/ca.crt   --embed-certs=true   --server=https://100.65.34.67:6443 --kubeconfig=./config
+
+
+ kubectl config set-credentials myuser1 --client-certificate=myuser1.crt --client-key=myuser1.key --embed-certs=true --kubeconfig=./config
+ 
+ kubectl config set-context default --cluster=kubernetes  --user=myuser1 --kubeconfig=./config
+ kubectl config use-context default --kubeconfig=./config
+
+
+
+# 设置集群参数
+kubectl config set-cluster kubernetes \
+  --certificate-authority=/etc/kubernetes/pki/ca.crt \
+  --embed-certs=true \
+  --server=https://10.96.51.8:6443 \
+  --kubeconfig=./config
+
+# 设置客户端认证参数
+kubectl config set-credentials neozhao \
+  --client-certificate=neozhao.crt \
+  --client-key=neozhao.key \
+  --embed-certs=true \
+  --kubeconfig=./config
+
+# 设置上下文参数
+kubectl config set-context default \
+  --cluster=kubernetes \
+  --user=neozhao \
+  --kubeconfig=./config
+
+# 设置默认上下文
+kubectl config use-context default \
+  --kubeconfig=./config
+```
+
