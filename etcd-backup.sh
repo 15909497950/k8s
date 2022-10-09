@@ -13,4 +13,4 @@ ETCDCTL_API=3 /usr/local/bin/etcdctl \
 snapshot save /home/etcd-backup/`hostname`-etcd-snapshot-`date +%Y-%m-%d-%H%M`.db
 
 # 备份保留30天
-find /home/etcd-backup/ -type f -name *.db -mtime +30 -exec rm -f {} \;
+find /home/etcd-backup/ -type f -name "*.db" -mtime +30 -exec rm -f {} \;
