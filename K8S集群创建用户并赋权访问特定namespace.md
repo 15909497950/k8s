@@ -236,13 +236,13 @@ kubectl config set-credentials neozhao \
   --kubeconfig=./config
 
 # 设置上下文参数
-kubectl config set-context default \
+kubectl config set-context myuser1@kubernetes \
   --cluster=kubernetes \
   --user=neozhao \
   --kubeconfig=./config
 
 # 设置默认上下文
-kubectl config use-context default \
+kubectl config use-context myuser1@kubernetes \
   --kubeconfig=./config
 ```
 
