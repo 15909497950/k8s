@@ -12,30 +12,7 @@ NAME                  TYPE                                  DATA   AGE
 default-token-zzvnh   kubernetes.io/service-account-token   3      39d
 huqingsen             Opaque                                2      10s
 [uatk8s@ansible ~]$ kubectl get secrets huqingsen -o yaml
-[root@node-0 test]# cat pod2.yaml 
-apiVersion: v1
-kind: Pod
-metadata:
-  creationTimestamp: null
-  labels:
-    run: pod2
-  name: pod2
-spec:
-  terminationGracePeriodSeconds: 0
-  containers:
-  - image: hub.c.163.com/library/mysql
-    imagePullPolicy: IfNotPresent
-    name: pod2
-    resources: {}
-    env:
-    - name: MYSQL_ROOT_PASSWORD
-      valueFrom:  #表示引用
-        secretKeyRef: # 固定格式
-          name: huqingsen #选择secret名称
-          key: password #参数名称
-  dnsPolicy: ClusterFirst
-  restartPolicy: Always
-status: {}
+
 进入pod kubectl exec -it mongodb-0 -n graylog -- bash
 强制重启pod  kubectl get pod pod-xx -n test -o yaml |kubectl replace --force -f -
  1051  kubectl run pod1 --image=docker.addpchina.com/nginx:1.19 
