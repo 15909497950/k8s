@@ -1,4 +1,5 @@
-####k8s笔记####
+                                            ####k8s笔记####
+
 [uatk8s@ansible ~]$ kubectl create secret generic huqingsen --from-literal=username=huqingsen --from-literal=password=hqs@123
 secret/huqingsen created
 [uatk8s@ansible ~]$ kubectl get secrets huqingsen -o jsonpath={.data.username}|base64 -d
@@ -22,3 +23,25 @@ huqingsen             Opaque                                2      10s
  1057  kubectl expose pod   pod1 --port=80 --name=svc1 
  1061  kubectl get po,ep,svc -o wide
  1063  kubectl expose pod   pod1 --port=80 --name=svc2 --type=NodePort
+k8s允许master节点参与调度的设置方法
+[root@k8s-0 ~]# kubectl describe node k8s-0 |grep Taints    # 查看污点
+Taints:             node-role.kubernetes.io/master:NoSchedule
+[root@k8s-0 ~]# kubectl taint nodes k8s-0 node-role.kubernetes.io/master-    #删除污点
+node/k8s-0 untainted
+[root@k8s-0 ~]# kubectl describe node k8s-0 |grep Taints
+Taints:             <none>
+###添加master为worker角色
+[root@k8s-0 ~]# kubectl label nodes k8s-0 node-role.kubernetes.io/worker=  (=代表添加标签，-代表删除标签）
+node/k8s-0 labeled
+[root@k8s-0 ~]# kubectl get nodes
+NAME    STATUS   ROLES                         AGE   VERSION
+k8s-0   Ready    control-plane,master,worker   9d    v1.20.7
+##将control-plane标签删除
+[root@k8s-0 ~]# kubectl label nodes k8s-0 node-role.kubernetes.io/control-plane-
+node/k8s-0 labeled
+[root@k8s-0 ~]# kubectl get nodes
+NAME    STATUS   ROLES                  AGE   VERSION
+k8s-0   Ready    master,worker          9d    v1.20.7
+
+
+
