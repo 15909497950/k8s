@@ -68,6 +68,22 @@ spec:
 
 ```
 
+## 做tcp代理转发
+
+```
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: tcp-services
+  namespace: ingress-nginx
+###----------添加这部分，ingress默认是支持tcp的
+data:
+  5044: "graylog/graylog-beats:5044"
+###--------------------------
+
+```
+
 
 
 ```shell
@@ -730,6 +746,8 @@ spec:
 
 ## 7、创建ingress
 
+web-http转发
+
 ```shell
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -738,13 +756,33 @@ metadata:
   namespace: default
 spec:
   rules:
-  - host: www.http123.com
+  - host: t-graylog.addpchina.com
     http:
       paths:
       - path: /
         backend:
-          serviceName: httpd
-          servicePort: 8000
+          serviceName: graylog-web 
+          servicePort: 9000
+
+```
+
+tcp 转发
+
+```shell
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: filebeat
+  namespace: graylog
+spec:
+  rules:
+  - host: t-filebeat.addpchina.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: graylog-beats
+          servicePort: 5044
 
 ```
 
