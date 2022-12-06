@@ -731,7 +731,7 @@ spec:
 ## 7、创建ingress
 
 ```shell
-apiVersion: extensions/v1
+apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: httpd
