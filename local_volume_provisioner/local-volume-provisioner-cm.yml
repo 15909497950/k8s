@@ -1,0 +1,26 @@
+# Macro to convert camelCase dictionary keys to snake_case keys
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: local-volume-provisioner
+  namespace: local-volume
+data:
+  nodeLabelsForPV: |
+    - kubernetes.io/hostname
+    - topology.kubernetes.io/region
+    - topology.kubernetes.io/zone
+  storageClassMap: |
+    local-storage:
+      fsType: xfs 
+      hostDir: /mnt/disks
+      mountDir: /mnt/disks
+      volumeMode: Filesystem
+    fast-disks:
+      blockCleanerCommand:
+      - /scripts/shred.sh
+      - '2'
+      fsType: ext4
+      hostDir: /mnt/fast-disks
+      mountDir: /mnt/fast-disks
+      volumeMode: Filesystem

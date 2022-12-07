@@ -1,0 +1,65 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: local-volume-provisioner
+  namespace: local-volume
+  labels:
+    k8s-app: local-volume-provisioner
+    version: v2.3.4
+spec:
+  selector:
+    matchLabels:
+      k8s-app: local-volume-provisioner
+      version: v2.3.4
+  template:
+    metadata:
+      labels:
+        k8s-app: local-volume-provisioner
+        version: v2.3.4
+    spec:
+      priorityClassName: system-node-critical
+      serviceAccountName: local-volume-provisioner
+      tolerations:
+        - effect: NoSchedule
+          operator: Exists
+      containers:
+        - name: provisioner
+          image: docker.addpchina.com/k8s.gcr.io/sig-storage/local-volume-provisioner:v2.4.0
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+          env:
+          - name: MY_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: MY_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          volumeMounts:
+            - name: local-volume-provisioner
+              mountPath: /etc/provisioner/config
+              readOnly: true
+            - mountPath: /dev
+              name: provisioner-dev
+            - name: local-volume-provisioner-hostpath-local-storage
+              mountPath: /mnt/disks
+              mountPropagation: "HostToContainer"
+            - name: local-volume-provisioner-hostpath-fast-disks
+              mountPath: /mnt/fast-disks
+              mountPropagation: "HostToContainer"
+      volumes:
+        - name: local-volume-provisioner
+          configMap:
+            name: local-volume-provisioner
+        - name: provisioner-dev
+          hostPath:
+            path: /dev
+        - name: local-volume-provisioner-hostpath-local-storage
+          hostPath:
+            path: /mnt/disks
+        - name: local-volume-provisioner-hostpath-fast-disks
+          hostPath:
+            path: /mnt/fast-disks
