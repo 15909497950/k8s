@@ -93,7 +93,7 @@ vrrp_script check_apiserver {
   script "/etc/keepalived/check_apiserver.sh"
   interval 3		 # 脚本执行间隔，每3s检测一次
   weight -3			 # 脚本结果导致的优先级变更，检测失败（脚本返回非0）则优先级 -3
-  fall 2			 # 检测连续2次失败才算确定是真失败。会用weight减少优先级（1-255之间）
+  fail 2			 # 检测连续2次失败才算确定是真失败。会用weight减少优先级（1-255之间）
   rise 1             # 检测2次成功就算成功。但不修改优先级
 }
 
