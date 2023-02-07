@@ -1,4 +1,5 @@
                                             ####k8s笔记####
+备份现有的Cluster配置文件: kubectl -n kube-system get configmap kubeadm-config -o jsonpath='{.data.ClusterConfiguration}' > kubeadm.yaml
 
 [uatk8s@ansible ~]$ kubectl create secret generic huqingsen --from-literal=username=huqingsen --from-literal=password=hqs@123
 secret/huqingsen created
