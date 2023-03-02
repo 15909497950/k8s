@@ -53,7 +53,7 @@ docker info | grep -i dir
  Docker Root Dir: /var/lib/docker  ##默认目录
 
 ```shell
-1、先停kubelet
+1、先停kubelet（不停该服务会导致容器无法停止，容器会一直启动)
 systemctl stop kubelet.service  
 查看当前容器
 [root@k8s-3 data]# docker ps
@@ -66,13 +66,10 @@ aa0a506559e31       780a7bc34ed2b       14 minutes ago      Running             
 docker ps |awk '{print $1}'|xargs docker stop
 ###containerd需要使用工具（nerdctl ps --namespace k8s.io |awk '{print $1}' |xargs -i nerdctl stop --namespace k8s.io {}）
 2.再停dockerd
-systemctl stop dockerd.service
+systemctl stop docker.service
 2、拷贝数据到新目录
 rsync -avz /var/lib/docker /data/
 拷完数据修改docker 数据目录
-第一种方式（sed -i '1a "data-root": "/data/docker",' /etc/docker/daemon.json）  
-第二种方式:
-####nv环境Ubuntu系统####
 cd /etc/systemd/system/docker.service.d
 sed -i 's%/var/lib%/data%g' docker-options.conf
 启动 kubelet
