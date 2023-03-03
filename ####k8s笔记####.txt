@@ -43,6 +43,9 @@ node/k8s-0 labeled
 [root@k8s-0 ~]# kubectl get nodes
 NAME    STATUS   ROLES                  AGE   VERSION
 k8s-0   Ready    master,worker          9d    v1.20.7
-
+####防止节点notready，kubelet启动加资源限制##
+--kube-reserved=cpu=1000m,memory=500Mi,ephemeral-storage=1Gi 
+--system-reserved=cpu=200m,memory=2000Mi 
+--eviction-hard=memory.available<2000Mi,nodefs.available<5%
 
 

@@ -1,4 +1,4 @@
-# 修改k8s 节点docker  工作目录
+# 修改k8s 节点docker  kubelet工作目录
 
 ## 一、设置节点不可调度和驱赶POD（master节点操作)
 
@@ -20,28 +20,18 @@ local-volume   local-volume-provisioner-5f98t            1/1     Running   0    
 
 ```
 
-## 二、去需要修改docker工作目录节点执行
+## 二、去需要修改工作目录节点执行
 
 ### 配置数据盘做lvm，并挂载lvm到/data目录
 
-```
-  139  lsblk 
-  140  pvs
-  141  pvcreate /dev/nvme0n1
-  142  ls
-  143  pvs
-  144  vgcreate vgdata /dev/nvme0n1
-  145  vgs
-  146  lvcreate -n lvdata -L 1024G vgdata
-  147  lvs
-  148  mkdir /data
-  149  mkfs.xfs /dev/vgdata/lvdata 
-  150  lsblk 
-  151  vim /etc/fstab 
-  152  echo "/dev/vgdata/lvdata /data xfs defaults 0 0" >> /etc/fstab 
-  153  cat /etc/fstab 
-  154  mount -a
-
+```shell
+pvcreate /dev/nvme0n1
+vgcreate vgdata /dev/nvme0n1
+lvcreate -n lvdata -L 1500G vgdata
+mkdir /data
+mkfs.xfs /dev/vgdata/lvdata 
+echo "/dev/mapper/vgdata-lvdata /data xfs defaults 0 0" >> /etc/fstab 
+mount -a
 ```
 
 
@@ -69,18 +59,60 @@ docker ps |awk '{print $1}'|xargs docker stop
 systemctl stop docker.service
 2、拷贝数据到新目录
 rsync -avz /var/lib/docker /data/
-拷完数据修改docker 数据目录
-cd /etc/systemd/system/docker.service.d
-sed -i 's%/var/lib%/data%g' docker-options.conf
+拷完数据修改docker数据目录
+sed -i 's%/var/lib%/data%g' /etc/systemd/system/docker.service.d/docker-options.conf
 启动 kubelet
-systemctl daemon-reload &&systemctl start kubelet.service
+systemctl daemon-reload &&systemctl restart kubelet.service
 检查systemctl status kubelet.service
 启动docker
-systemctl daemon-reload && systemctl start docker.service
+systemctl daemon-reload && systemctl restart docker.service
 docker info | grep -i dir
  Docker Root Dir: /data/docker
  
 ```
+
+### 修改kubelet目录（不在根分区的话，需要设置到docker的子目录)
+
+```shell
+rsync -avzh --progress /var/lib/kubelet /data/docker/  #拷贝数据到新目录
+修改/etc/kubernetes/kubelet.env配置文件
+写入 ROOT_DIR="--root-dir=/data/docker/kubelet"
+sed -i '4a ROOT_DIR="--root-dir=/data/docker/kubelet"' /etc/kubernetes/kubelet.env
+修改/etc/systemd/system/kubelet.service添加ROOT_DIR参数
+root@k8s-node-19:/etc/systemd/system# cat kubelet.service 
+[Unit]
+Description=Kubernetes Kubelet Server
+Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+After=docker.service
+Wants=docker.socket
+
+[Service]
+User=root
+EnvironmentFile=-/etc/kubernetes/kubelet.env
+ExecStart=/usr/local/bin/kubelet \
+		$KUBE_LOGTOSTDERR \
+		$KUBE_LOG_LEVEL \
+		$KUBELET_API_SERVER \
+		$KUBELET_ADDRESS \
+		$KUBELET_PORT \
+		$KUBELET_HOSTNAME \
+		$KUBELET_ARGS \
+		$DOCKER_SOCKET \
+		$KUBELET_NETWORK_PLUGIN \
+		$KUBELET_VOLUME_PLUGIN \
+		$KUBELET_CLOUDPROVIDER \
+        $ROOT_DIR 
+Restart=always
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target
+#######################
+umount $(df -HT | grep '/var/lib/kubelet/pods' | awk '{print $7}') ##卸载旧目录
+
+```
+
+
 
 ## 三、取消node禁止调度
 
