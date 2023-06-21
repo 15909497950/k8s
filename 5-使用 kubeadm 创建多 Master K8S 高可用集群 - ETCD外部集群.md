@@ -386,13 +386,21 @@ curl https://docs.projectcalico.org/manifests/calico.yaml -O
 
 修改calico.yaml 文件
 
-```
+```shell
 # vim calico.yaml
+[root@node-1 ~]# cat -n calico.yaml |grep image
+   560	          image: calico/cni:v3.14.2
+   582	          image: calico/cni:v3.14.2
+   618	          image: calico/pod2daemon-flexvol:v3.14.2
+   629	          image: calico/node:v3.14.2
+   814	          image: calico/kube-controllers:v3.14.2  ###镜像地址修改为正确的地址
 675             - name: CALICO_IPV4POOL_CIDR
 676               value: "10.244.0.0/16"
 修改为：
 675             - name: CALICO_IPV4POOL_CIDR
 676               value: "10.2.0.0/16"
+
+652	              value: "interface=ens.*"  ##修改为实际网卡名
 ```
 
 部署calico
