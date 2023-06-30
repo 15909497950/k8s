@@ -202,3 +202,16 @@ statefulset.apps/awx-postgres-13   1/1     25h
 
 ```
 
+```shell
+由于我们使用的ingress class是nginx，所以要指定awx的ingress class
+···
+spec:
+  ingressClassName: nginx  ###添加这行
+  rules:
+  - host: k8sawx.addpchina.com
+    http:
+      paths:
+      - backend:
+·····
+```
+
