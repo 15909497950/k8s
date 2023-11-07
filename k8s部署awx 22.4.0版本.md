@@ -204,6 +204,7 @@ statefulset.apps/awx-postgres-13   1/1     25h
 
 ```shell
 由于我们使用的ingress class是nginx，所以要指定awx的ingress class
+kubectl get ingress -n awx awx-ingress -o yaml
 ···
 spec:
   ingressClassName: nginx  ###添加这行

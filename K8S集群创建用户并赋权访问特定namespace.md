@@ -216,10 +216,11 @@ drwxr-xr-x   - root supergroup          0 2020-06-02 09:14 /mytest
 
  kubectl config set-credentials myuser1 --client-certificate=myuser1.crt --client-key=myuser1.key --embed-certs=true --kubeconfig=./config
  
- kubectl config set-context default --cluster=kubernetes  --user=myuser1 --kubeconfig=./config
- kubectl config use-context default --kubeconfig=./config
+ kubectl config set-context myuser1@kubernetes --cluster=kubernetes  --user=myuser1 --kubeconfig=./config
+ kubectl config use-context myuser1@kubernetes --kubeconfig=./config
 
-
+###查看信息###
+kubectl config get-contexts --kubeconfig=./config
 
 # 设置集群参数
 kubectl config set-cluster kubernetes \
@@ -230,15 +231,15 @@ kubectl config set-cluster kubernetes \
 
 # 设置客户端认证参数
 kubectl config set-credentials neozhao \
-  --client-certificate=neozhao.crt \
-  --client-key=neozhao.key \
+  --client-certificate=myuser1.crt \
+  --client-key=myuser1.key \
   --embed-certs=true \
   --kubeconfig=./config
 
 # 设置上下文参数
 kubectl config set-context myuser1@kubernetes \
   --cluster=kubernetes \
-  --user=neozhao \
+  --user=myuser1 \
   --kubeconfig=./config
 
 # 设置默认上下文
