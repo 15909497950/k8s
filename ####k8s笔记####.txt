@@ -17,7 +17,7 @@ huqingsen             Opaque                                2      10s
 
 进入pod kubectl exec -it mongodb-0 -n graylog -- bash
 强制重启pod  kubectl get pod pod-xx -n test -o yaml |kubectl replace --force -f -
- 1051  kubectl run pod1 --image=docker.addpchina.com/nginx:1.19 
+ 1051  kubectl run pod1 --image=docker.test.com/nginx:1.19 
 
  1055  kubectl get po -o wide
 
