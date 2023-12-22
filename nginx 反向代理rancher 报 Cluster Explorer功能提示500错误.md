@@ -11,7 +11,25 @@ HTTP Error 500: Internal Server Error
 from /k8s/clusters/c-mppz8/v1/schemas
 ```
 
+### 查找解决方法
 
+经过在谷歌搜索后发现github有人报相关的issue：[Internal Server Error In Cluster Explorer After Upgrade to v2.5.2](https://www.xjh.me/go/?url=aHR0cHM6Ly9naXRodWIuY29tL3JhbmNoZXIvcmFuY2hlci9pc3N1ZXMvMzAxODI=)
+
+看了一下上下文，发现环境和报错都和我的实际情况相近，感觉可以参考一下解决方法（之前第一次看到这个错误的时候，其实没有意识到是我自己的问题）
+
+实在没想到竟然可能是Websocket头的问题（
+
+我之前反向代理Websocket一直都是使用的这段，也没有遇到过奇怪问题，所以一直没有用那种更~~麻烦~~准确的方法（
+
+```
+proxy_set_header Connection "Upgrade";
+```
+
+------
+
+### 尝试解决
+
+我记得反代Websocket还有另一种更准确的方法，于是使用了那段替换掉直接替换为Upgrade的代码，即
 
 ~~~shell
 ###nginx.conf####
