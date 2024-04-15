@@ -92,9 +92,9 @@ metadata:
   namespace: myns1
   name: myrole1
 rules:
-- apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["get","watch","list","create","update","patch","delete"]
+- apiGroups: ["","*"]
+  resources: ["pods"]  ###(["*"]namespace 资源所有权限)
+  verbs: ["get","watch","list","create","update","patch","delete"]   ###(["*"]所有权限)
 
 ```
 

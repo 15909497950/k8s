@@ -18,6 +18,7 @@ awx从17版本开始推荐使用https://github.com/ansible/awx-operator   项目
 先下载 git代码，此次部署的是awx-operator-2.3.0（awx 22.4.0）
 
 ```shell
+在线部署
 git clone https://github.com/ansible/awx-operator.git
 cd awx-operator
 git checkout 2.3.0
@@ -25,15 +26,17 @@ $ Deploy AWX Operator
 export NAMESPACE=awx
 make deploy
 需要执行段时间，因为要拉取镜像，如果是内网需要提前准备好镜像
-```
-
-```shell
 [root@node-1 awx-deploy-main]# kubectl get pods -n awx
 NAME                                               READY   STATUS    RESTARTS   AGE
 awx-operator-controller-manager-594f8f54f9-bglhp   2/2     Running   0          7h10m
 查看pod运行情况
+```
 
-后面配置账号密码证书和pv，pvc以及 kind awx
+```shell
+离线部署需要下载文件awx-deploy-main，需要提前准备好镜像
+
+
+配置账号密码证书和pv，pvc以及 kind awx
 cat 01-secret.yaml
 ---
 apiVersion: v1
@@ -69,7 +72,7 @@ AWX_WEB_FQDN="k8sawx.addpchina.com"
 openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -out tls-cert.pem -keyout tls-key.pem -subj "/CN=${AWX_WEB_FQDN}/O=${AWX_WEB_FQDN}" 
 kubectl -n awx create secret tls awx-secret-tls --cert=./tls-cert.pem --key=tls-key.pem --dry-run=client -o yaml
 复制yaml文件到01-secret.yaml
-## kubectl apply -f 01-secret.yaml
+
 
 ```
 
@@ -160,9 +163,10 @@ spec:
   projects_persistence: true
   projects_existing_claim: awx-projects-claim
 ------------------------------------------------------------------------------
-kubectl apply -f 02-pv.yaml
-kubectl apply -f 03-pvc.yaml
-kubectl apply -f 04-awx.yaml
+
+###离线部署的话###
+kubectl apply -f kustomization.yaml
+
 [root@node-1 awx-deploy-main]# kubectl get awx -n awx
 NAME   AGE
 awx    25h
