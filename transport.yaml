@@ -1,0 +1,54 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: transport
+spec:
+    template:
+        spec:
+            containers:
+                - name: transport
+                  image: postgres
+                  command:
+                    - bash
+                    - /root/run.sh
+                  volumeMounts:
+                    - name: pgpass
+                      subPath: .pgpass
+                      mountPath: /root/.pgpass
+                    - name: script
+                      subPath: run.sh
+                      mountPath: /root/run.sh
+            volumes:
+                - name: script
+                  configMap:
+                    name: script
+                - name: pgpass
+                  secret:
+                    secretName: pgpass
+                    defaultMode: 256
+            restartPolicy: Never
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: script
+data:
+    run.sh: |
+        #!/bin/bash
+
+        pg_dump \
+          --dbname="host=avindexd.cdark9kc6exc.us-west-1.rds.amazonaws.com port=5432 dbname=avindexd-prd0 user=avindexd-prd0" \
+          --format=custom --no-owner --no-privileges --verbose \
+          | pg_restore \
+          --dbname="host=avindex.ccpf3wk1uzkt.us-west-2.rds.amazonaws.com port=5432 dbname=avindex-prd0 user=avindex-prd0" \
+          --format=custom --no-owner --no-privileges --verbose
+---
+apiVersion: v1
+kind: Secret
+metadata:
+    name: pgpass
+type: Opaque
+stringData:
+    .pgpass: |
+        avindexd.cdark9kc6exc.us-west-1.rds.amazonaws.com:5432:avindexd-prd0:avindexd-prd0:password
+        avindex.ccpf3wk1uzkt.us-west-2.rds.amazonaws.com:5432:avindex-prd0:avindex-prd0:password
