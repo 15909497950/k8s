@@ -1,0 +1,13 @@
+#!/bin/bash
+
+user=checkuser
+passwd=Checkuser@123
+host="100.65.34.215"
+
+count_users_total=`mysql -h100.65.34.215 -ucheckuser -pCheckuser@123 -e "select allocated_license from cloud_caas_db.t_tenant;"|sed -n '2p' `
+count_license_total=`mysql -h100.65.34.215 -ucheckuser -pCheckuser@123 -e "select license from cloud_caas_db.t_tenant;"|sed -n '2p' `
+echo "caas_license_total ${count_license_total}" | curl --data-binary @- https://pushgateway.test.com/metrics/job/caas_license_total/instance/100.65.34.215
+echo "caas_users_total ${count_users_total}" | curl --data-binary @- https://pushgateway.test.com/metrics/job/caas_license_users/instance/100.65.34.215
+
+caas_available_license="$((count_license_total - count_users_total))"
+echo "caas_available_license $caas_available_license" | curl --data-binary @- https://pushgateway.test.com/metrics/job/caas_available_license/instance/100.65.34.215
